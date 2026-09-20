@@ -7,16 +7,16 @@ export default async function handler(req, res) {
     const { imageBase64, mimeType, searchDci } = req.body;
     const geminiKey = (process.env.GEMINI_API_KEY || '').trim();
     
-    // Normalizar URL de Supabase para evitar errores de protocolo o barras
+    // 1. Limpieza absoluta de la URL de Supabase para evitar duplicar /rest/v1
     let rawUrl = (process.env.SUPABASE_URL || '').trim();
     if (rawUrl && !rawUrl.startsWith('http')) {
       rawUrl = 'https://' + rawUrl;
     }
-    const supabaseUrl = rawUrl.replace(/\/+$/, '');
+    // Extraer solo el dominio base de Supabase
+    const baseDomain = rawUrl.split('/rest')[0].replace(/\/+$/, '');
     const supabaseKey = (process.env.SUPABASE_ANON_KEY || '').trim();
 
-    // Si falta configurar las variables en Vercel, avisar en pantalla
-    if (!supabaseUrl || !supabaseKey) {
+    if (!baseDomain || !supabaseKey) {
       return res.status(200).json({
         prescriptionDetails: { dci: 'Faltan credenciales', orientacion: 'SUPABASE_URL o SUPABASE_ANON_KEY no están configuradas en Vercel.' },
         medicamentos: []
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     let queryTerm = searchDci ? searchDci.trim() : null;
     let prescriptionDetails = null;
 
-    // 1. Si enviaron imagen, analizar con Gemini
+    // 2. Si enviaron imagen, analizar con Gemini
     if (imageBase64 && geminiKey) {
       try {
         const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -70,8 +70,8 @@ Responde estrictamente en formato JSON:
       }
     }
 
-    // 2. Traer el catálogo completo desde Supabase
-    const queryUrl = `${supabaseUrl}/rest/v1/medicamentos?select=*&order=precio_referencial_bs.asc`;
+    // 3. Consultar el catálogo de medicamentos en Supabase (ruta limpia garantizada)
+    const queryUrl = `${baseDomain}/rest/v1/medicamentos?select=*&order=precio_referencial_bs.asc`;
     
     const dbResponse = await fetch(queryUrl, {
       headers: {
@@ -83,14 +83,14 @@ Responde estrictamente en formato JSON:
     if (!dbResponse.ok) {
       const errorText = await dbResponse.text();
       return res.status(200).json({
-        prescriptionDetails: { dci: 'Error de Conexión', orientacion: `Supabase respondió (${dbResponse.status}): ${errorText}` },
+        prescriptionDetails: { dci: 'Error de Supabase', orientacion: `Error ${dbResponse.status}: ${errorText}` },
         medicamentos: []
       });
     }
 
     const allMedicamentos = await dbResponse.json();
 
-    // 3. Si no hay término, devolver todo el catálogo para ver los 11 productos
+    // 4. Si no hay término de búsqueda, devolver todo el catálogo
     if (!queryTerm) {
       return res.status(200).json({
         prescriptionDetails,
@@ -99,7 +99,7 @@ Responde estrictamente en formato JSON:
       });
     }
 
-    // 4. Filtrar en memoria (insensible a mayúsculas/minúsculas y tildes)
+    // 5. Filtrar en memoria insensible a mayúsculas, minúsculas y tildes
     const normalize = (str) => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     const cleanSearch = normalize(queryTerm);
 
