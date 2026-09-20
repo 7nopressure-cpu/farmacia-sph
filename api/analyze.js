@@ -6,10 +6,11 @@ export default async function handler(req, res) {
   try {
     const { imageBase64, mimeType, searchDci } = req.body;
     const geminiKey = process.env.GEMINI_API_KEY;
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    const rawUrl = process.env.SUPABASE_URL || '';
+    const supabaseUrl = rawUrl.trim().replace(/\/+$/, '');
+    const supabaseKey = (process.env.SUPABASE_ANON_KEY || '').trim();
 
-    let dciToSearch = searchDci;
+    let queryTerm = searchDci ? searchDci.trim() : null;
     let prescriptionDetails = null;
 
     // 1. Si enviaron imagen, analizar con Gemini Multimodal
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
 Identifica el principio activo principal (Denominación Común Internacional - DCI), la concentración y la forma farmacéutica.
 Responde estrictamente en formato JSON válido con este esquema:
 {
-  "dci": "Principio activo exacto en español (ej: Azitromicina, Losartán, Paracetamol)",
+  "dci": "Principio activo exacto en español (ej: Azitromicina, Diclofenaco, Paracetamol, Losartan)",
   "concentracion": "ej: 500 mg, 50 mg o vacio",
   "nombre_leido": "Texto exacto tal cual aparece escrito en el papel",
   "legible": true,
@@ -46,20 +47,20 @@ Responde estrictamente en formato JSON válido con este esquema:
         const aiData = await aiResponse.json();
         const rawText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
         prescriptionDetails = JSON.parse(rawText || '{}');
-        dciToSearch = prescriptionDetails.dci;
+        queryTerm = prescriptionDetails.dci;
       }
     }
 
-    // 2. Si no hay DCI válido
-    if (!dciToSearch) {
+    // 2. Si no hay término de búsqueda
+    if (!queryTerm) {
       return res.status(200).json({
         prescriptionDetails: prescriptionDetails || { legible: false, orientacion: "No se identificó un fármaco claro." },
         medicamentos: []
       });
     }
 
-    // 3. Consultar alternativas en Supabase mediante su REST API oficial
-    const queryUrl = `${supabaseUrl}/rest/v1/medicamentos?dci_principio_activo=ilike.*${encodeURIComponent(dciToSearch)}*&order=precio_referencial_bs.asc`;
+    // 3. Buscar coincidencias en Supabase tanto en DCI como en Nombre Comercial
+    const queryUrl = `${supabaseUrl}/rest/v1/medicamentos?or=(dci_principio_activo.ilike.*${encodeURIComponent(queryTerm)}*,nombre_comercial.ilike.*${encodeURIComponent(queryTerm)}*)&order=precio_referencial_bs.asc`;
     
     const dbResponse = await fetch(queryUrl, {
       headers: {
@@ -72,7 +73,7 @@ Responde estrictamente en formato JSON válido con este esquema:
 
     return res.status(200).json({
       prescriptionDetails,
-      dci: dciToSearch,
+      dci: queryTerm,
       medicamentos
     });
 
