@@ -11,6 +11,7 @@ export interface Medicamento {
   es_venta_libre: boolean;
   grupo_terapeutico: string;
   indicaciones_principales: string;
+  imagen_url?: string;
 }
 
 export interface CentroSalud {

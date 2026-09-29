@@ -71,6 +71,27 @@ async function seed() {
     if (combined.includes('antibiotico') || combined.includes('cardio')) precio = 62.00;
     if (lab.toLowerCase().includes('ifa') || lab.toLowerCase().includes('cofar')) precio = precio * 0.45;
 
+    let imagen = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80';
+    if (combined.includes('inhalad') || combined.includes('aerosol') || combined.includes('salbutamol')) {
+      imagen = 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('oftalm') || combined.includes('colirio')) {
+      imagen = 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('jarabe') || combined.includes('suspensi') || combined.includes('gotas')) {
+      imagen = 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('crema') || combined.includes('gel') || combined.includes('pomada')) {
+      imagen = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('inyect') || combined.includes('ampoll') || combined.includes('vial')) {
+      imagen = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('gelatina blanda') || combined.includes('vitamina')) {
+      imagen = 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('antibiotico') || combined.includes('amoxicilina') || combined.includes('azitromicina')) {
+      imagen = 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('antihipertensivo') || combined.includes('losartan') || combined.includes('metformina')) {
+      imagen = 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=400&q=80';
+    } else if (combined.includes('paracetamol') || combined.includes('ibuprofeno') || combined.includes('comprimidos')) {
+      imagen = 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=80';
+    }
+
     batch.push({
       id,
       nombre_comercial: nombre,
@@ -83,7 +104,8 @@ async function seed() {
       condicion_venta: es_otc ? 'Venta Libre' : 'Bajo Receta Médica',
       es_venta_libre: es_otc,
       grupo_terapeutico: accion,
-      indicaciones_principales: presentacion ? `${accion}. Presentación: ${presentacion}` : accion
+      indicaciones_principales: presentacion ? `${accion}. Presentación: ${presentacion}` : accion,
+      imagen_url: imagen
     });
 
     if (batch.length >= batchSize || i === rawRows.length - 1) {

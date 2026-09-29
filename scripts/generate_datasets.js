@@ -101,6 +101,58 @@ function calculateReferentialPrice(dci, accion, lab, isOtc) {
   return Math.round(finalPrice * 10) / 10;
 }
 
+function getMedicationImage(forma, accion, dci, nombre) {
+  const combined = `${forma || ''} ${accion || ''} ${dci || ''} ${nombre || ''}`.toLowerCase();
+
+  // 1. Inhaladores / Aerosoles respiratorios
+  if (combined.includes('inhalad') || combined.includes('aerosol') || combined.includes('spray') || combined.includes('salbutamol')) {
+    return 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 2. Oftálmicos, Colirios, Gotas para ojos u oídos
+  if (combined.includes('oftalm') || combined.includes('colirio') || (combined.includes('gotas') && (combined.includes('ojo') || combined.includes('oido')))) {
+    return 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 3. Jarabes, Suspensiones orales, Solución oral, Gotas pediátricas
+  if (combined.includes('jarabe') || combined.includes('suspensi') || combined.includes('solucion oral') || combined.includes('gotas') || combined.includes('pediatric')) {
+    return 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 4. Cremas, Geles tópicos, Pomadas, Ungüentos dérmicos
+  if (combined.includes('crema') || combined.includes('gel') || combined.includes('pomada') || combined.includes('ung') || combined.includes('topico') || combined.includes('dermico')) {
+    return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 5. Inyectables, Viales, Ampollas, Perfusión
+  if (combined.includes('inyect') || combined.includes('ampoll') || combined.includes('vial') || combined.includes('perfusion') || combined.includes('intravenosa')) {
+    return 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 6. Cápsulas blandas de gelatina / Vitaminas y Suplementos
+  if (combined.includes('gelatina blanda') || combined.includes('blanda') || combined.includes('vitamina') || combined.includes('retinol') || combined.includes('omega')) {
+    return 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 7. Antibióticos y Antiinfecciosos sistémicos
+  if (combined.includes('antibiotico') || combined.includes('amoxicilina') || combined.includes('azitromicina') || combined.includes('ciprofloxacina') || combined.includes('cefalexina')) {
+    return 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 8. Cardiovasculares, Antihipertensivos, Antidiabéticos
+  if (combined.includes('antihipertensivo') || combined.includes('losartan') || combined.includes('metformina') || combined.includes('enalapril') || combined.includes('amlodipina')) {
+    return 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 9. Cajas comerciales y blisters de medicamentos generales (Paracetamol, Antigripales, Analgésicos)
+  if (combined.includes('paracetamol') || combined.includes('ibuprofeno') || combined.includes('antigripal') || combined.includes('comprimidos') || combined.includes('tabletas')) {
+    return 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=80';
+  }
+
+  // 10. Default packaging
+  return 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80';
+}
+
 // Map the items
 const processedMedicamentos = rawRows.map((r, idx) => {
   const id = r['ID'] || (idx + 1);
@@ -116,6 +168,7 @@ const processedMedicamentos = rawRows.map((r, idx) => {
   const concentracion = extractConcentration(formula, presentacion, nombre);
   const registro = generateSanitaryReg(lab, id);
   const precio = calculateReferentialPrice(dci, accion, lab, saleInfo.es_venta_libre);
+  const imagen = getMedicationImage(forma, accion, dci, nombre);
 
   return {
     id: id,
@@ -129,7 +182,8 @@ const processedMedicamentos = rawRows.map((r, idx) => {
     condicion_venta: saleInfo.condicion_venta,
     es_venta_libre: saleInfo.es_venta_libre,
     grupo_terapeutico: accion,
-    indicaciones_principales: presentacion ? `${accion}. Presentación: ${presentacion}` : accion
+    indicaciones_principales: presentacion ? `${accion}. Presentación: ${presentacion}` : accion,
+    imagen_url: imagen
   };
 });
 
@@ -370,6 +424,7 @@ CREATE TABLE IF NOT EXISTS medicamentos (
     es_venta_libre BOOLEAN DEFAULT FALSE,
     grupo_terapeutico TEXT,
     indicaciones_principales TEXT,
+    imagen_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -422,15 +477,15 @@ sqlContent += centrosSql + `\nON CONFLICT (id) DO UPDATE SET\n` +
   `nombre = EXCLUDED.nombre, especialidades = EXCLUDED.especialidades, telefono_urgencias = EXCLUDED.telefono_urgencias;\n\n`;
 
 // Add initial seed batch for medicamentos (first 500 in SQL directly to avoid huge files)
-sqlContent += `-- Inserción inicial de medicamentos (Muestra de referencia):\n`;
-sqlContent += `INSERT INTO medicamentos (id, nombre_comercial, dci_principio_activo, concentracion, forma_farmaceutica, laboratorio, registro_sanitario, precio_referencial_bs, condicion_venta, es_venta_libre, grupo_terapeutico, indicaciones_principales)\nVALUES\n`;
+sqlContent += `-- Inserción inicial de medicamentos (Muestra de referencia con imágenes de presentación comercial):\n`;
+sqlContent += `INSERT INTO medicamentos (id, nombre_comercial, dci_principio_activo, concentracion, forma_farmaceutica, laboratorio, registro_sanitario, precio_referencial_bs, condicion_venta, es_venta_libre, grupo_terapeutico, indicaciones_principales, imagen_url)\nVALUES\n`;
 
 const sqlRows = processedMedicamentos.slice(0, 400).map(m => {
-  return `(${m.id}, '${m.nombre_comercial.replace(/'/g, "''")}', '${m.dci_principio_activo.replace(/'/g, "''")}', '${m.concentracion.replace(/'/g, "''")}', '${m.forma_farmaceutica.replace(/'/g, "''")}', '${m.laboratorio.replace(/'/g, "''")}', '${m.registro_sanitario}', ${m.precio_referencial_bs}, '${m.condicion_venta}', ${m.es_venta_libre}, '${m.grupo_terapeutico.replace(/'/g, "''")}', '${m.indicaciones_principales.replace(/'/g, "''")}')`;
+  return `(${m.id}, '${m.nombre_comercial.replace(/'/g, "''")}', '${m.dci_principio_activo.replace(/'/g, "''")}', '${m.concentracion.replace(/'/g, "''")}', '${m.forma_farmaceutica.replace(/'/g, "''")}', '${m.laboratorio.replace(/'/g, "''")}', '${m.registro_sanitario}', ${m.precio_referencial_bs}, '${m.condicion_venta}', ${m.es_venta_libre}, '${m.grupo_terapeutico.replace(/'/g, "''")}', '${m.indicaciones_principales.replace(/'/g, "''")}', '${m.imagen_url}')`;
 }).join(',\n');
 
 sqlContent += sqlRows + `\nON CONFLICT (id) DO UPDATE SET\n` +
-  `nombre_comercial = EXCLUDED.nombre_comercial, precio_referencial_bs = EXCLUDED.precio_referencial_bs, condicion_venta = EXCLUDED.condicion_venta;\n`;
+  `nombre_comercial = EXCLUDED.nombre_comercial, precio_referencial_bs = EXCLUDED.precio_referencial_bs, condicion_venta = EXCLUDED.condicion_venta, imagen_url = EXCLUDED.imagen_url;\n`;
 
 fs.writeFileSync(sqlFile, sqlContent, 'utf8');
 console.log(`Generado script SQL completo en scripts/seed_supabase.sql (${sqlContent.length} bytes).`);

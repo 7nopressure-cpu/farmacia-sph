@@ -129,17 +129,26 @@ export default function SavingsComparatorModal({
             <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
               Medicamento de Referencia Consultado:
             </span>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h4 className="text-base font-bold text-gray-900">
-                  {selectedMed.nombre_comercial}
-                </h4>
-                <p className="text-xs text-gray-600">
-                  {selectedMed.dci_principio_activo} • {selectedMed.concentracion} • Lab: {selectedMed.laboratorio}
-                </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Reg. AGEMED: {selectedMed.registro_sanitario}
-                </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-xl bg-white border border-gray-200 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                  <img
+                    src={selectedMed.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                    alt={selectedMed.nombre_comercial}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-gray-900">
+                    {selectedMed.nombre_comercial}
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    {selectedMed.dci_principio_activo} • {selectedMed.concentracion} • Lab: {selectedMed.laboratorio}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    Reg. AGEMED: {selectedMed.registro_sanitario}
+                  </p>
+                </div>
               </div>
               <div className="text-right">
                 <span className="text-xs text-gray-500 block">Precio Ref.</span>
@@ -181,28 +190,37 @@ export default function SavingsComparatorModal({
                         : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900">
-                          {item.nombre_comercial}
-                        </span>
-                        {item.precio_referencial_bs === bestPrice && (
-                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-600 text-white uppercase tracking-wider">
-                            Mayor Ahorro
-                          </span>
-                        )}
-                        {isCurrent && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0B2B64] text-white">
-                            Tu Selección
-                          </span>
-                        )}
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                        <img
+                          src={item.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                          alt={item.nombre_comercial}
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-                      <p className="text-xs text-gray-600">
-                        {item.laboratorio} • {item.forma_farmaceutica} • {item.concentracion}
-                      </p>
-                      <p className="text-[10px] text-gray-400">
-                        Reg. Sanitario: {item.registro_sanitario} • Condición: {item.condicion_venta}
-                      </p>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-gray-900">
+                            {item.nombre_comercial}
+                          </span>
+                          {item.precio_referencial_bs === bestPrice && (
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-600 text-white uppercase tracking-wider">
+                              Mayor Ahorro
+                            </span>
+                          )}
+                          {isCurrent && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0B2B64] text-white">
+                              Tu Selección
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          {item.laboratorio} • {item.forma_farmaceutica} • {item.concentracion}
+                        </p>
+                        <p className="text-[10px] text-gray-400">
+                          Reg. Sanitario: {item.registro_sanitario} • Condición: {item.condicion_venta}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">

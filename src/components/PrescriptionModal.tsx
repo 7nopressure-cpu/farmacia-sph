@@ -293,12 +293,23 @@ export default function PrescriptionModal({
                               {med.laboratorio}
                             </span>
                           </div>
-                          <h5 className="font-bold text-sm text-gray-900 leading-snug">
-                            {med.nombre_comercial}
-                          </h5>
-                          <p className="text-xs text-gray-500">
-                            {med.dci_principio_activo} {med.concentracion}
-                          </p>
+                          <div className="flex items-center gap-2.5 my-1.5">
+                            <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 p-0.5 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                              <img
+                                src={med.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                                alt={med.nombre_comercial}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h5 className="font-bold text-sm text-gray-900 leading-snug truncate">
+                                {med.nombre_comercial}
+                              </h5>
+                              <p className="text-xs text-gray-500 truncate">
+                                {med.dci_principio_activo} {med.concentracion}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
