@@ -251,13 +251,13 @@ export default function VademecumSection({
                     {/* Commercial Product Packaging Image (Farmacorp Style) */}
                     <div className="relative w-full h-36 my-2 bg-gradient-to-b from-gray-50/80 to-white rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100/80 group-hover:border-blue-100 transition-all">
                       <img
-                        src={med.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                        src={med.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                         alt={`${med.nombre_comercial} - ${med.dci_principio_activo}`}
                         className="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
                         loading="lazy"
                         onError={(e) => {
-                          // Fallback to blister pack if network error
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80';
+                          // Fallback to commercial pack if network error
+                          (e.target as HTMLImageElement).src = '/assets/medications/paracetamol_500mg_generico.jpg';
                         }}
                       />
                       <span className="absolute bottom-1 right-2 text-[9px] font-bold text-gray-400/80 uppercase tracking-tighter">

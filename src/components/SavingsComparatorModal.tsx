@@ -133,7 +133,7 @@ export default function SavingsComparatorModal({
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 rounded-xl bg-white border border-gray-200 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
                   <img
-                    src={selectedMed.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                    src={selectedMed.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                     alt={selectedMed.nombre_comercial}
                     className="w-full h-full object-contain"
                   />
@@ -193,7 +193,7 @@ export default function SavingsComparatorModal({
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
                         <img
-                          src={item.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                          src={item.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                           alt={item.nombre_comercial}
                           className="w-full h-full object-contain"
                         />

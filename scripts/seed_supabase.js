@@ -71,25 +71,45 @@ async function seed() {
     if (combined.includes('antibiotico') || combined.includes('cardio')) precio = 62.00;
     if (lab.toLowerCase().includes('ifa') || lab.toLowerCase().includes('cofar')) precio = precio * 0.45;
 
-    let imagen = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80';
-    if (combined.includes('inhalad') || combined.includes('aerosol') || combined.includes('salbutamol')) {
-      imagen = 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('oftalm') || combined.includes('colirio')) {
-      imagen = 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('jarabe') || combined.includes('suspensi') || combined.includes('gotas')) {
-      imagen = 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('crema') || combined.includes('gel') || combined.includes('pomada')) {
-      imagen = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('inyect') || combined.includes('ampoll') || combined.includes('vial')) {
-      imagen = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('gelatina blanda') || combined.includes('vitamina')) {
-      imagen = 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('antibiotico') || combined.includes('amoxicilina') || combined.includes('azitromicina')) {
-      imagen = 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('antihipertensivo') || combined.includes('losartan') || combined.includes('metformina')) {
-      imagen = 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=400&q=80';
-    } else if (combined.includes('paracetamol') || combined.includes('ibuprofeno') || combined.includes('comprimidos')) {
-      imagen = 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=80';
+    let imagen = '/assets/medications/paracetamol_500mg_generico.jpg';
+    if (combined.includes('kitadol')) {
+      imagen = '/assets/medications/kitadol_500mg.jpg';
+    } else if (combined.includes('paracetamol')) {
+      imagen = '/assets/medications/tempdol_paracetamol_500.jpg';
+    } else if (combined.includes('ibuprofeno')) {
+      imagen = '/assets/medications/fabogesic_600mg.jpg';
+    } else if (combined.includes('aspirina')) {
+      imagen = '/assets/medications/aspirina_500mg.jpg';
+    } else if (combined.includes('amoxicilina')) {
+      imagen = '/assets/medications/samoxicilina_500.jpg';
+    } else if (combined.includes('azitromicina') || combined.includes('3 micina')) {
+      imagen = '/assets/medications/3_micina_500mg.jpg';
+    } else if (combined.includes('omeprazol')) {
+      imagen = '/assets/medications/refluprazol_omeprazol.jpg';
+    } else if (combined.includes('losartan')) {
+      imagen = '/assets/medications/losartan_50mg.jpg';
+    } else if (combined.includes('metformina')) {
+      imagen = '/assets/medications/metformina_850mg.jpg';
+    } else if (combined.includes('viadil') || combined.includes('sertal')) {
+      imagen = '/assets/medications/viadil_compuesto.jpg';
+    } else if (combined.includes('diclofenaco')) {
+      imagen = '/assets/medications/diclofenaco_100mg.jpg';
+    } else if (combined.includes('refrianex') || combined.includes('tapsin') || combined.includes('antigripal')) {
+      imagen = '/assets/medications/antigripal_compuesto.jpg';
+    } else if (combined.includes('salbutamol') || combined.includes('abrilar')) {
+      imagen = '/assets/medications/salbutamol_aerosol.jpg';
+    } else if (combined.includes('loratadina') || combined.includes('degraler')) {
+      imagen = '/assets/medications/loratadina_10mg.jpg';
+    } else if (combined.includes('vitamina') || combined.includes('vimin')) {
+      imagen = '/assets/medications/pan_vimin_jarabe.jpg';
+    } else if (combined.includes('suero') || combined.includes('rehidratac')) {
+      imagen = '/assets/medications/sales_rehidratacion_frutilla.jpg';
+    } else if (combined.includes('crema') || combined.includes('gel')) {
+      imagen = '/assets/medications/chavez_TRIDERMACREMA15GR_7771011250304_166.jpg';
+    } else if (combined.includes('inyect') || combined.includes('ampoll')) {
+      imagen = '/assets/medications/omeprazol_ampolla.jpg';
+    } else if (combined.includes('jarabe') || combined.includes('suspensi')) {
+      imagen = '/assets/medications/refrianex_jarabe.jpg';
     }
 
     batch.push({

@@ -102,55 +102,203 @@ function calculateReferentialPrice(dci, accion, lab, isOtc) {
 }
 
 function getMedicationImage(forma, accion, dci, nombre) {
-  const combined = `${forma || ''} ${accion || ''} ${dci || ''} ${nombre || ''}`.toLowerCase();
+  const norm = `${nombre || ''} ${dci || ''} ${accion || ''} ${forma || ''}`.toLowerCase();
 
-  // 1. Inhaladores / Aerosoles respiratorios
-  if (combined.includes('inhalad') || combined.includes('aerosol') || combined.includes('spray') || combined.includes('salbutamol')) {
-    return 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=400&q=80';
+  // 1. Kitadol
+  if (norm.includes('kitadol')) {
+    if (norm.includes('1g') || norm.includes('1000') || norm.includes('forte')) return '/assets/medications/kitadol_1g.jpg';
+    if (norm.includes('infant') || norm.includes('pediat') || norm.includes('gotas') || norm.includes('jarabe')) return '/assets/medications/kitadol_infantil.jpg';
+    return '/assets/medications/kitadol_500mg.jpg';
   }
 
-  // 2. Oftálmicos, Colirios, Gotas para ojos u oídos
-  if (combined.includes('oftalm') || combined.includes('colirio') || (combined.includes('gotas') && (combined.includes('ojo') || combined.includes('oido')))) {
-    return 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=400&q=80';
+  // 2. Paracetamol / Acetaminofeno / Tempdol / Piredol / Z-Mol
+  if (norm.includes('paracetamol') || norm.includes('acetaminof') || norm.includes('tempdol') || norm.includes('piredol') || norm.includes('zmol') || norm.includes('z-mol')) {
+    if (norm.includes('1g') || norm.includes('1000')) return '/assets/medications/paracetamol_1g_amaria.jpg';
+    if (norm.includes('gotas') || norm.includes('jarabe') || norm.includes('pediat')) return '/assets/medications/kitadol_infantil.jpg';
+    if (norm.includes('piredol') || norm.includes('inti')) return '/assets/medications/piredol_paracetamol.jpg';
+    if (norm.includes('tempdol') || norm.includes('farmacorp')) return '/assets/medications/tempdol_paracetamol_500.jpg';
+    if (norm.includes('chavez') || norm.includes('zmol')) return '/assets/medications/chavez_ZMOL1GRX20COMPPARACETAMOL_7840653004467_12016.jpg';
+    return '/assets/medications/paracetamol_500mg_generico.jpg';
   }
 
-  // 3. Jarabes, Suspensiones orales, Solución oral, Gotas pediátricas
-  if (combined.includes('jarabe') || combined.includes('suspensi') || combined.includes('solucion oral') || combined.includes('gotas') || combined.includes('pediatric')) {
-    return 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=400&q=80';
+  // 3. Ibuprofeno / Fabogesic / Actron / Buprex / Dolo Febrex
+  if (norm.includes('ibuprofeno') || norm.includes('fabogesic') || norm.includes('actron') || norm.includes('buprex') || norm.includes('febrex')) {
+    if (norm.includes('800') || norm.includes('febrex')) return '/assets/medications/dolo_febrex_800.jpg';
+    if (norm.includes('blanda') || norm.includes('capsul')) return '/assets/medications/fabogesic_blanda.jpg';
+    return '/assets/medications/fabogesic_600mg.jpg';
   }
 
-  // 4. Cremas, Geles tópicos, Pomadas, Ungüentos dérmicos
-  if (combined.includes('crema') || combined.includes('gel') || combined.includes('pomada') || combined.includes('ung') || combined.includes('topico') || combined.includes('dermico')) {
-    return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=400&q=80';
+  // 4. Aspirina / Cardioaspirina / Aspirinetas / Ácido Acetilsalicílico
+  if (norm.includes('aspirina') || norm.includes('aspirineta') || norm.includes('acetilsalicilico')) {
+    if (norm.includes('cardio') || norm.includes('100')) return '/assets/medications/cardioaspirina_100mg.jpg';
+    if (norm.includes('aspirineta') || norm.includes('infant')) return '/assets/medications/aspirinetas_100mg.jpg';
+    return '/assets/medications/aspirina_500mg.jpg';
   }
 
-  // 5. Inyectables, Viales, Ampollas, Perfusión
-  if (combined.includes('inyect') || combined.includes('ampoll') || combined.includes('vial') || combined.includes('perfusion') || combined.includes('intravenosa')) {
-    return 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=400&q=80';
+  // 5. Amoxicilina / Amoval / Fabamox / Curam
+  if (norm.includes('amoxicilina') || norm.includes('amoval') || norm.includes('fabamox') || norm.includes('curam')) {
+    if (norm.includes('susp') || norm.includes('jarabe') || (norm.includes('oral') && norm.includes('soluc'))) return '/assets/medications/amoval_suspension.jpg';
+    if (norm.includes('duo') || norm.includes('1000') || norm.includes('1g')) return '/assets/medications/amoval_duo_1000mg.jpg';
+    if (norm.includes('clavulan') || norm.includes('fabamox')) return '/assets/medications/fabamox_duo.jpg';
+    return '/assets/medications/samoxicilina_500.jpg';
   }
 
-  // 6. Cápsulas blandas de gelatina / Vitaminas y Suplementos
-  if (combined.includes('gelatina blanda') || combined.includes('blanda') || combined.includes('vitamina') || combined.includes('retinol') || combined.includes('omega')) {
-    return 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&w=400&q=80';
+  // 6. Azitromicina / 3-Micina / Tromicin / Udox / Izotrop
+  if (norm.includes('azitromicina') || norm.includes('3-micina') || norm.includes('3 micina') || norm.includes('tromicin') || norm.includes('udox') || norm.includes('izotrop')) {
+    if (norm.includes('3-micina') || norm.includes('3 micina')) return '/assets/medications/3_micina_500mg.jpg';
+    if (norm.includes('susp') || norm.includes('polvo')) return '/assets/medications/azitromicina_suspension.jpg';
+    if (norm.includes('tromicin')) return '/assets/medications/chavez_TROMICIN1GRAZITROMICINAX10TAB_32221.jpg';
+    if (norm.includes('udox')) return '/assets/medications/chavez_UDOX200MGAZITROMICINASUSP30ML_7460536560035_12239.jpg';
+    return '/assets/medications/izotrop_azitromicina_500mg.jpg';
   }
 
-  // 7. Antibióticos y Antiinfecciosos sistémicos
-  if (combined.includes('antibiotico') || combined.includes('amoxicilina') || combined.includes('azitromicina') || combined.includes('ciprofloxacina') || combined.includes('cefalexina')) {
-    return 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=400&q=80';
+  // 7. Ciprofloxacina / Ciriax
+  if (norm.includes('ciprofloxacina') || norm.includes('ciriax') || norm.includes('baycip')) {
+    return '/assets/medications/ciprofloxacina_500mg.jpg';
   }
 
-  // 8. Cardiovasculares, Antihipertensivos, Antidiabéticos
-  if (combined.includes('antihipertensivo') || combined.includes('losartan') || combined.includes('metformina') || combined.includes('enalapril') || combined.includes('amlodipina')) {
-    return 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=400&q=80';
+  // 8. Omeprazol / Refluprazol / Ulcozol / Esomeprazol / Pantoprazol
+  if (norm.includes('omeprazol') || norm.includes('refluprazol') || norm.includes('ulcozol') || norm.includes('esomeprazol') || norm.includes('pantoprazol')) {
+    if (norm.includes('ampoll') || norm.includes('inyect') || norm.includes('iv')) return '/assets/medications/omeprazol_ampolla.jpg';
+    if (norm.includes('ulcozol')) return '/assets/medications/chavez_ULCOZOL20MGOMEPRAZOLCOMPDELIBERACIONRETARDADAX100_7770102004024_30396_500.jpg';
+    return '/assets/medications/refluprazol_omeprazol.jpg';
   }
 
-  // 9. Cajas comerciales y blisters de medicamentos generales (Paracetamol, Antigripales, Analgésicos)
-  if (combined.includes('paracetamol') || combined.includes('ibuprofeno') || combined.includes('antigripal') || combined.includes('comprimidos') || combined.includes('tabletas')) {
-    return 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=80';
+  // 9. Losartán / Corpres / Cardiovasc
+  if (norm.includes('losartan') || norm.includes('corpres') || norm.includes('cardiovasc')) {
+    if (norm.includes('cofar')) return '/assets/medications/hipermaxi_losartan_cofar.webp';
+    return '/assets/medications/losartan_50mg.jpg';
   }
 
-  // 10. Default packaging
-  return 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80';
+  // 10. Enalapril / Lotrial
+  if (norm.includes('enalapril') || norm.includes('lotrial')) {
+    return '/assets/medications/enalapril_10mg.jpg';
+  }
+
+  // 11. Amlodipina / Amlotens / Amloc
+  if (norm.includes('amlodipina') || norm.includes('amlodipino') || norm.includes('amlotens') || norm.includes('amloc')) {
+    return '/assets/medications/amlodipina_10mg.jpg';
+  }
+
+  // 12. Metformina / Glibenclamida / Glucophage
+  if (norm.includes('metformina') || norm.includes('glibenclamida') || norm.includes('glucophage') || norm.includes('glafornil')) {
+    if (norm.includes('glibenclamida')) return '/assets/medications/metformina_glibenclamida.jpg';
+    return '/assets/medications/metformina_850mg.jpg';
+  }
+
+  // 13. Atorvastatina / Atorvasterol / Lipitor
+  if (norm.includes('atorvastatina') || norm.includes('atorvasterol') || norm.includes('lipitor') || norm.includes('simvastatina')) {
+    if (norm.includes('atorvasterol')) return '/assets/medications/hipermaxi_atorvasterol_20.png';
+    return '/assets/medications/atorvastatina_10mg.jpg';
+  }
+
+  // 14. Viadil / Sertal / Propinox / Buscapina / Clonixinato de Lisina
+  if (norm.includes('viadil') || norm.includes('sertal') || norm.includes('propinox') || norm.includes('buscapina') || norm.includes('clonixinato')) {
+    if (norm.includes('gotas')) return '/assets/medications/sertal_gotas.jpg';
+    if (norm.includes('inyect') || norm.includes('ampoll')) return '/assets/medications/chavez_VIADILCOMPUESTOX3DOSISINYECTABLE_7730969305399_25860.jpg';
+    if (norm.includes('cnf') || norm.includes('hipermaxi')) return '/assets/medications/hipermaxi_viadil_cnf.jpg';
+    if (norm.includes('chavez')) return '/assets/medications/chavez_VIADILCOMPNF10MGX10COMP_7730969303128_6394.jpg';
+    return '/assets/medications/viadil_compuesto.jpg';
+  }
+
+  // 15. Diclofenaco / Clofenac / Divafen / Voltaren / Terbofenaco
+  if (norm.includes('diclofenaco') || norm.includes('clofenac') || norm.includes('divafen') || norm.includes('voltaren') || norm.includes('terbofenaco')) {
+    if (norm.includes('gel') || norm.includes('crema') || norm.includes('topico')) return '/assets/medications/diclofenaco_gel.jpg';
+    if (norm.includes('retard')) return '/assets/medications/hipermaxi_diclofenaco_retard.png';
+    if (norm.includes('divafen')) return '/assets/medications/divafen_diclofenaco.jpg';
+    return '/assets/medications/diclofenaco_100mg.jpg';
+  }
+
+  // 16. Ketorolaco / Dolgenal / Supradol
+  if (norm.includes('ketorolaco') || norm.includes('dolgenal') || norm.includes('supradol')) {
+    if (norm.includes('ampoll') || norm.includes('inyect')) return '/assets/medications/ketorolaco_60mg.jpg';
+    return '/assets/medications/ketorolaco_comprimidos.jpg';
+  }
+
+  // 17. Antigripales (Refrianex, Tapsin, Vitagrip, Mentisan, Nastizol, Gripectil, Antigripal Vita)
+  if (norm.includes('antigripal') || norm.includes('refrianex') || norm.includes('tapsin') || norm.includes('vitagrip') || norm.includes('mentisan') || norm.includes('nastizol') || norm.includes('gripectil')) {
+    if (norm.includes('mentisan')) {
+      if (norm.includes('pote') || norm.includes('60')) return '/assets/medications/hipermaxi_mentisan_60g.webp';
+      return '/assets/medications/mentisan_unguento.jpg';
+    }
+    if (norm.includes('tapsin')) {
+      if (norm.includes('noche')) return '/assets/medications/tapsin_noche.jpg';
+      return '/assets/medications/chavez_TAPSINDIA60SOBRES_7800004399536_7957.jpg';
+    }
+    if (norm.includes('refrianex')) {
+      if (norm.includes('jarabe') || norm.includes('susp')) return '/assets/medications/refrianex_jarabe.jpg';
+      return '/assets/medications/refrianex_comprimidos.jpg';
+    }
+    if (norm.includes('nastizol')) return '/assets/medications/nastizol_tabletas.jpg';
+    if (norm.includes('vitagrip') || norm.includes('vita')) return '/assets/medications/chavez_VITAGRIPCALIENTEX25SOBRES_7770105009255_3091.jpg';
+    return '/assets/medications/antigripal_compuesto.jpg';
+  }
+
+  // 18. Respiratorios (Salbutamol, Abrilar, Hedera Helix, Ambroxol, Budesonida, Tusbol, Tusabron, Ucotrin)
+  if (norm.includes('salbutamol') || norm.includes('aerolin') || norm.includes('ventolin') || norm.includes('abrilar') || norm.includes('ambroxol') || norm.includes('budesonida') || norm.includes('tusbol') || norm.includes('tusabron') || norm.includes('ucotrin') || norm.includes('expectorante') || norm.includes('bronco')) {
+    if (norm.includes('inhalad') || norm.includes('aerosol') || norm.includes('salbutamol')) return '/assets/medications/salbutamol_aerosol.jpg';
+    if (norm.includes('abrilar')) return '/assets/medications/abrilar_mentolado.jpg';
+    if (norm.includes('ambroxol')) return '/assets/medications/ambroxol_infantil.jpg';
+    if (norm.includes('ucotrin') || norm.includes('wira')) return '/assets/medications/chavez_UCOTRINJARABEEXPECTORANTEWIRAWIRA100ML_7770108610304_886.jpg';
+    if (norm.includes('tusabron')) return '/assets/medications/chavez_TUSABRONJARABEX100ML_7770102004208_32553.jpg';
+    return '/assets/medications/abrilar_mentolado.jpg';
+  }
+
+  // 19. Antialérgicos (Loratadina, Degraler, Levocetirizina, Cetirizina, Alerfast)
+  if (norm.includes('loratadina') || norm.includes('degraler') || norm.includes('levocetirizina') || norm.includes('cetirizina') || norm.includes('alerfast')) {
+    if (norm.includes('gotas')) return '/assets/medications/degraler_gotas.jpg';
+    if (norm.includes('jarabe')) return '/assets/medications/degraler_jarabe.jpg';
+    if (norm.includes('cetirizina')) return '/assets/medications/cetirizina_gotas.jpg';
+    return '/assets/medications/loratadina_10mg.jpg';
+  }
+
+  // 20. Corticoides (Dexametasona, Prednisona, Cortiprex, Betametasona)
+  if (norm.includes('dexametasona') || norm.includes('prednisona') || norm.includes('cortiprex') || norm.includes('betametasona')) {
+    if (norm.includes('dexametasona')) return '/assets/medications/dexametasona_4mg.jpg';
+    return '/assets/medications/prednisona_20mg.jpg';
+  }
+
+  // 21. Rehidratación Oral & Sueros
+  if (norm.includes('rehidratac') || norm.includes('oralit') || norm.includes('suero') || norm.includes('electrolit')) {
+    if (norm.includes('fisiolog') || norm.includes('salina')) return '/assets/medications/suero_fisiologico_100ml.jpg';
+    return '/assets/medications/sales_rehidratacion_frutilla.jpg';
+  }
+
+  // 22. Vitaminas / Calcio / Zinc / B12 / Ácido Ascórbico / Multivitamínico
+  if (norm.includes('vitamina') || norm.includes('calcio') || norm.includes('zinc') || norm.includes('complejo b') || norm.includes('ascorbico') || norm.includes('vimin')) {
+    if (norm.includes('neuro') || norm.includes('b12')) return '/assets/medications/neuro_vimin_jarabe.jpg';
+    if (norm.includes('c') || norm.includes('ascorbico')) return '/assets/medications/vitamina_c_21century.jpg';
+    if (norm.includes('calcio') || norm.includes('caprimida')) return '/assets/medications/hipermaxi_caprimida_d.png';
+    if (norm.includes('zinc')) return '/assets/medications/chavez_ZINC20JARABE100ML_7770108083016_7232.jpg';
+    return '/assets/medications/pan_vimin_jarabe.jpg';
+  }
+
+  // 23. SNC / Antiepilépticos / Tiroides (Valpakine, Valproato, Eutirox, Levotiroxina)
+  if (norm.includes('valpakine') || norm.includes('valproat') || norm.includes('eutirox') || norm.includes('levotirox')) {
+    if (norm.includes('eutirox') || norm.includes('levotirox')) return '/assets/medications/eutirox_100mcg.jpg';
+    if (norm.includes('soluc') || norm.includes('gotas')) return '/assets/medications/valpakine_solucion.jpg';
+    return '/assets/medications/valpakine_comprimidos.jpg';
+  }
+
+  // 24. Formas farmacéuticas específicas con empaque real boliviano
+  if (norm.includes('crema') || norm.includes('pomada') || norm.includes('ung') || norm.includes('dermico') || norm.includes('topico')) {
+    return '/assets/medications/chavez_TRIDERMACREMA15GR_7771011250304_166.jpg';
+  }
+
+  if (norm.includes('oftalm') || norm.includes('colirio') || (norm.includes('gotas') && norm.includes('ojo'))) {
+    return '/assets/medications/chavez_XEGREXGOTASOFTAL5ML_7703281001607_15436.jpg';
+  }
+
+  if (norm.includes('inyect') || norm.includes('ampoll') || norm.includes('vial') || norm.includes('perfusion')) {
+    return '/assets/medications/omeprazol_ampolla.jpg';
+  }
+
+  if (norm.includes('jarabe') || norm.includes('suspensi') || norm.includes('solucion oral')) {
+    return '/assets/medications/refrianex_jarabe.jpg';
+  }
+
+  // 25. Fallback general a blister/caja farmacéutica comercial boliviana
+  return '/assets/medications/paracetamol_500mg_generico.jpg';
 }
 
 // Map the items

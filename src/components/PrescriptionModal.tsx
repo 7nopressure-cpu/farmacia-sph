@@ -296,7 +296,7 @@ export default function PrescriptionModal({
                           <div className="flex items-center gap-2.5 my-1.5">
                             <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 p-0.5 flex-shrink-0 flex items-center justify-center overflow-hidden">
                               <img
-                                src={med.imagen_url || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80'}
+                                src={med.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                                 alt={med.nombre_comercial}
                                 className="w-full h-full object-contain"
                               />
