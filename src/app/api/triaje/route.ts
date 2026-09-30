@@ -93,31 +93,55 @@ Responde SIEMPRE en este formato JSON válido:
   "advertencia_legal": "Orientación preliminar bajo Ley 1737 de Bolivia. No reemplaza consulta médica presencial."
 }`;
 
-        const aiRes = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemInstruction }] },
-            contents: contentsPayload,
-            generationConfig: {
-              response_mime_type: 'application/json',
-              temperature: 0.2
-            }
-          })
-        });
+        const candidateModels = [
+          'gemini-1.5-flash-latest',
+          'gemini-1.5-flash',
+          'gemini-2.0-flash',
+          'gemini-1.5-flash-001',
+          'gemini-1.5-flash-002',
+          'gemini-pro'
+        ];
 
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          const rawText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText) as TriajeResponse;
-            return NextResponse.json({
-              ...parsed,
-              source: 'gemini-1.5-flash',
-              engine_status: 'online',
-              timestamp: new Date().toISOString()
+        let parsedResponse: TriajeResponse | null = null;
+        let successfulModel = '';
+
+        for (const modelName of candidateModels) {
+          try {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${rawApiKey}`;
+            const aiRes = await fetch(geminiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                system_instruction: { parts: [{ text: systemInstruction }] },
+                contents: contentsPayload,
+                generationConfig: {
+                  response_mime_type: 'application/json',
+                  temperature: 0.2
+                }
+              })
             });
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const rawText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawText) {
+                parsedResponse = JSON.parse(rawText) as TriajeResponse;
+                successfulModel = modelName;
+                break;
+              }
+            }
+          } catch (mErr) {
+            // try next model
           }
+        }
+
+        if (parsedResponse) {
+          return NextResponse.json({
+            ...parsedResponse,
+            source: successfulModel,
+            engine_status: 'online',
+            timestamp: new Date().toISOString()
+          });
         }
       } catch (geminiErr: any) {
         console.warn('Gemini request failed, falling back to expert clinical engine:', geminiErr.message);
@@ -159,27 +183,52 @@ export async function GET(req: Request) {
   };
 
   if (geminiKey) {
-    try {
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-      const res = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Hola, di OK si funcionas' }] }]
-        })
-      });
-      testResult.tested = true;
-      testResult.google_status = `HTTP ${res.status}`;
-      if (res.ok) {
-        const data = await res.json();
-        testResult.google_response = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'OK';
-      } else {
-        testResult.error = await res.text();
+      // 1. Check ListModels
+      const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`);
+      let availableModels: string[] = [];
+      if (listRes.ok) {
+        const listData = await listRes.json();
+        availableModels = (listData.models || []).map((m: any) => m.name.replace('models/', ''));
       }
-    } catch (e: any) {
+
+      // 2. Try candidate models
+      const candidatesToTry = availableModels.length > 0 
+        ? availableModels.filter(m => m.includes('gemini') && m.includes('flash')).slice(0, 3)
+        : ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-pro'];
+
+      let workingModel: string | null = null;
+      let modelResponse: string | null = null;
+      let lastErr: any = null;
+
+      for (const mod of candidatesToTry) {
+        try {
+          const modUrl = `https://generativelanguage.googleapis.com/v1beta/models/${mod}:generateContent?key=${geminiKey}`;
+          const mRes = await fetch(modUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: 'Hola' }] }]
+            })
+          });
+          if (mRes.ok) {
+            const mData = await mRes.json();
+            workingModel = mod;
+            modelResponse = mData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            break;
+          } else {
+            lastErr = await mRes.text();
+          }
+        } catch (e: any) {
+          lastErr = e.message;
+        }
+      }
+
       testResult.tested = true;
-      testResult.error = e.message;
-    }
+      testResult.available_models = availableModels.slice(0, 15);
+      testResult.working_model = workingModel;
+      testResult.google_status = workingModel ? 'HTTP 200 OK (WORKING)' : `Failed (${listRes.status})`;
+      testResult.google_response = modelResponse;
+      testResult.error = workingModel ? null : lastErr;
   }
 
   return NextResponse.json({
