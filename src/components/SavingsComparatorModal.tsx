@@ -5,12 +5,10 @@ import {
   X, 
   TrendingDown, 
   ShieldCheck, 
-  MessageCircle, 
   Check, 
   AlertCircle,
   Sparkles,
-  ArrowRight,
-  ExternalLink
+  ArrowRight
 } from 'lucide-react';
 import { Medicamento } from '../lib/types';
 
@@ -55,13 +53,6 @@ export default function SavingsComparatorModal({
   const savingsBs = Math.max(0, referencePrice - bestPrice);
   const savingsPercent = referencePrice > 0 ? Math.round((savingsBs / referencePrice) * 100) : 0;
 
-  const handleWhatsAppConsult = (med: Medicamento) => {
-    const text = encodeURIComponent(
-      `Hola Farmacia SnowPoint Bolivia, estoy consultando la alternativa económica de ${selectedMed.nombre_comercial} (${selectedMed.dci_principio_activo}). Deseo adquirir: ${med.nombre_comercial} de Laboratorio ${med.laboratorio} (Precio Ref: Bs ${med.precio_referencial_bs.toFixed(2)}). ¿Tienen disponibilidad?`
-    );
-    window.open(`https://wa.me/59170000000?text=${text}`, '_blank');
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-sm overflow-y-auto">
       <div 
@@ -79,7 +70,7 @@ export default function SavingsComparatorModal({
                 Comparativa de Ahorro Bioequivalente
               </h2>
               <p className="text-xs text-gray-300">
-                Principio activo: <strong className="text-cyan-300">{selectedMed.dci_principio_activo}</strong> ({selectedMed.concentracion})
+                Alternativas equivalentes autorizadas por AGEMED en Bolivia
               </p>
             </div>
           </div>
@@ -92,46 +83,40 @@ export default function SavingsComparatorModal({
         </div>
 
         {/* Content */}
-        <div className="p-5 sm:p-6 max-h-[80vh] overflow-y-auto space-y-5">
-          {/* Big Savings Highlight Banner */}
+        <div className="p-5 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          
+          {/* Main Savings Banner */}
           {savingsBs > 0 && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/5 border border-emerald-300 flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>Ahorro Máximo Identificado:</span>
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-200 block mb-1">
+                  Oportunidad de Ahorro en Genéricos
                 </span>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-700">
-                  Hasta Bs {savingsBs.toFixed(2)}{' '}
-                  <span className="text-sm sm:text-base font-bold text-emerald-600">
-                    ({savingsPercent}% de ahorro)
-                  </span>
-                </p>
-                <p className="text-xs text-gray-600">
-                  Mismo principio activo y efecto terapéutico avalado por normativa de bioequivalencia AGEMED.
+                <h3 className="text-xl sm:text-2xl font-black">
+                  Ahorra hasta Bs {savingsBs.toFixed(2)} ({savingsPercent}%)
+                </h3>
+                <p className="text-xs text-emerald-100 mt-1 max-w-md">
+                  El principio activo <strong className="text-white">{selectedMed.dci_principio_activo}</strong> cuenta con alternativas farmacéuticas bioequivalentes de menor costo y registro sanitario vigente.
                 </p>
               </div>
 
-              <div className="text-right">
-                <span className="text-[11px] text-gray-500 block">Opción más económica</span>
-                <span className="text-lg font-black text-[#0B2B64]">
-                  {lowestPriceMed.nombre_comercial}
-                </span>
-                <span className="text-xs text-emerald-600 font-bold block">
-                  Bs {lowestPriceMed.precio_referencial_bs.toFixed(2)}
+              <div className="bg-white/15 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/20 text-center sm:text-right flex-shrink-0">
+                <span className="text-[10px] text-emerald-100 block">Mejor precio referencial</span>
+                <span className="text-2xl font-black text-white">
+                  Bs {bestPrice.toFixed(2)}
                 </span>
               </div>
             </div>
           )}
 
-          {/* Current Selection card */}
-          <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
-            <span className="text-[11px] font-bold uppercase text-gray-500 tracking-wider block mb-1">
+          {/* Selected Medicine Review */}
+          <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#0B2B64] block mb-2">
               Medicamento de Referencia Consultado:
             </span>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-xl bg-white border border-gray-200 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 p-1 flex items-center justify-center overflow-hidden flex-shrink-0">
                   <img
                     src={selectedMed.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                     alt={selectedMed.nombre_comercial}
@@ -139,14 +124,14 @@ export default function SavingsComparatorModal({
                   />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-gray-900">
+                  <h4 className="font-extrabold text-sm text-gray-900">
                     {selectedMed.nombre_comercial}
                   </h4>
-                  <p className="text-xs text-gray-600">
-                    {selectedMed.dci_principio_activo} • {selectedMed.concentracion} • Lab: {selectedMed.laboratorio}
+                  <p className="text-xs text-[#00A3E0] font-semibold">
+                    {selectedMed.dci_principio_activo} • {selectedMed.concentracion}
                   </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    Reg. AGEMED: {selectedMed.registro_sanitario}
+                  <p className="text-[11px] text-gray-500">
+                    {selectedMed.laboratorio} • Reg: {selectedMed.registro_sanitario}
                   </p>
                 </div>
               </div>
@@ -167,7 +152,7 @@ export default function SavingsComparatorModal({
                 <span>Todas las Alternativas Registradas ({equivalents.length}):</span>
               </h4>
               <span className="text-[11px] text-gray-500">
-                Ordenado por precio ascendente
+                Ordenado por precio referencial ascendente
               </span>
             </div>
 
@@ -243,13 +228,11 @@ export default function SavingsComparatorModal({
                         )}
                       </div>
 
-                      <button
-                        onClick={() => handleWhatsAppConsult(item)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#10B981] hover:bg-emerald-600 text-white shadow-sm transition-all"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Pedir</span>
-                      </button>
+                      <div className="flex items-center">
+                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
+                          Bioequivalente
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -261,7 +244,7 @@ export default function SavingsComparatorModal({
           <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-600 space-y-1">
             <div className="font-bold text-gray-800 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Garantía de Calidad y Bioequivalencia:</span>
+              <span>Garantía de Calidad y Bioequivalencia (Ley 1737 de Bolivia):</span>
             </div>
             <p className="text-[11px] leading-relaxed">
               Los medicamentos genéricos y de marca autorizados por AGEMED en Bolivia comparten el mismo principio activo, concentración y vía de administración, asegurando idéntica eficacia terapéutica a una fracción del costo.

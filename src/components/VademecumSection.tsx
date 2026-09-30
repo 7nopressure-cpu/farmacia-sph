@@ -1,19 +1,16 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
-  Filter, 
   TrendingDown, 
-  MessageCircle, 
   Pill, 
-  Tag, 
   Building, 
   Check, 
   ChevronRight,
   ShieldCheck,
   Sparkles,
-  AlertCircle
+  Info
 } from 'lucide-react';
 import { Medicamento } from '../lib/types';
 
@@ -34,7 +31,12 @@ export default function VademecumSection({
 }: VademecumSectionProps) {
   const [filterCondicion, setFilterCondicion] = useState<'all' | 'otc' | 'receta'>('all');
   const [filterLab, setFilterLab] = useState<string>('all');
-  const [visibleCount, setVisibleCount] = useState<number>(24);
+  const [visibleCount, setVisibleCount] = useState<number>(36);
+
+  // Reset pagination when search or filters change
+  useEffect(() => {
+    setVisibleCount(36);
+  }, [searchQuery, filterCondicion, selectedCategory, filterLab]);
 
   // Extract unique prominent laboratories for filter dropdown
   const laboratories = useMemo(() => {
@@ -46,7 +48,7 @@ export default function VademecumSection({
     });
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 15)
+      .slice(0, 20)
       .map(([lab]) => lab);
   }, [medicamentos]);
 
@@ -67,7 +69,7 @@ export default function VademecumSection({
         const accion = normalize(m.grupo_terapeutico);
         const lab = normalize(m.laboratorio);
         const ind = normalize(m.indicaciones_principales);
-        return nom.includes(q) || dci.includes(q) || accion.includes(q) || lab.includes(q) || ind.includes(q);
+        return nom.includes(q) || dci.includes(q) || lab.includes(q) || accion.includes(q) || ind.includes(q);
       });
     }
 
@@ -90,7 +92,7 @@ export default function VademecumSection({
 
     // Laboratory filter
     if (filterLab !== 'all') {
-      list = list.filter(m => m.laboratorio.toLowerCase() === filterLab.toLowerCase());
+      list = list.filter(m => (m.laboratorio || '').toLowerCase() === filterLab.toLowerCase());
     }
 
     return list;
@@ -98,43 +100,37 @@ export default function VademecumSection({
 
   const visibleList = filteredMedicamentos.slice(0, visibleCount);
 
-  const handleWhatsAppConsult = (med: Medicamento) => {
-    const text = encodeURIComponent(
-      `Hola Farmacia SnowPoint Bolivia, deseo consultar la disponibilidad del medicamento: ${med.nombre_comercial} (${med.dci_principio_activo} ${med.concentracion}) del Laboratorio ${med.laboratorio} (Precio Ref: Bs ${med.precio_referencial_bs.toFixed(2)}).`
-    );
-    window.open(`https://wa.me/59170000000?text=${text}`, '_blank');
-  };
-
   return (
     <section id="vademecum-section" className="py-12 bg-[#F4F6F8]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-gray-200">
+        {/* Section Title */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#00A3E0] mb-1">
-              <Pill className="w-4 h-4" />
-              <span>Catálogo Farmacoterapéutico Oficial</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-[#0B2B64] font-bold text-xs uppercase tracking-wider mb-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00A3E0]" />
+              <span>Vademécum Oficial del Estado Plurinacional de Bolivia</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B2B64]">
-              Vademécum Nacional de Bolivia
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B2B64] tracking-tight">
+              Catálogo Nacional de Medicamentos
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Búsqueda en tiempo real de fármacos autorizados por AGEMED con comparativa de bioequivalencia y ahorro.
+              Registro sanitario oficial AGEMED de <strong>5.471 fármacos</strong> con precios referenciales y bioequivalentes genéricos.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-700 shadow-sm">
-              Mostrando <strong className="text-[#0B2B64]">{filteredMedicamentos.length}</strong> medicamentos
-            </span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-2xs">
+            <span>Resultados:</span>
+            <strong className="text-[#0B2B64] font-black text-sm">{filteredMedicamentos.length.toLocaleString()}</strong>
+            <span>de {medicamentos.length.toLocaleString() || '5.471'}</span>
           </div>
         </div>
 
-        {/* Filter Controls Bar (Farmacorp style) */}
-        <div className="my-6 p-4 rounded-2xl bg-white border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
-          {/* Sale condition buttons */}
-          <div className="flex items-center gap-2">
+        {/* Filter Toolbar (Farmacorp Style) */}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-gray-200 mb-8 flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Condition toggle buttons (All vs OTC vs Rx) */}
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-bold text-gray-500 uppercase mr-1">Condición:</span>
             <button
               onClick={() => setFilterCondicion('all')}
@@ -144,7 +140,7 @@ export default function VademecumSection({
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              Todos
+              Todos ({medicamentos.length || 5472})
             </button>
             <button
               onClick={() => setFilterCondicion('otc')}
@@ -188,7 +184,7 @@ export default function VademecumSection({
           </div>
         </div>
 
-        {/* Medication Cards Grid (Farmacorp E-Commerce Style) */}
+        {/* Medication Cards Grid (Farmacorp E-Commerce Retail Style) */}
         {filteredMedicamentos.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
             <Pill className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -196,7 +192,7 @@ export default function VademecumSection({
               No se encontraron medicamentos con esos filtros
             </h3>
             <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-              Intenta buscar por el nombre genérico del principio activo (ej: Paracetamol, Ibuprofeno, Amoxicilina) o restablece los filtros.
+              Intenta buscar por el nombre genérico del principio activo (ej: Paracetamol, Ibuprofeno, Amoxicilina, Omeprazol) o restablece los filtros.
             </p>
             <button
               onClick={() => {
@@ -212,10 +208,10 @@ export default function VademecumSection({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
             {visibleList.map((med) => {
-              // Calculate estimated savings badge for higher-priced drugs
               const isGeneric = (med.laboratorio || '').toLowerCase().includes('ifa') || 
                                 (med.laboratorio || '').toLowerCase().includes('cofar') ||
-                                (med.laboratorio || '').toLowerCase().includes('delta');
+                                (med.laboratorio || '').toLowerCase().includes('delta') ||
+                                (med.laboratorio || '').toLowerCase().includes('genérico');
 
               return (
                 <div
@@ -226,7 +222,7 @@ export default function VademecumSection({
                   <div>
                     <div className="flex items-center justify-between gap-1 mb-2.5">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide ${
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wide ${
                           med.es_venta_libre
                             ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                             : 'bg-slate-100 text-slate-700 border border-slate-200'
@@ -235,7 +231,7 @@ export default function VademecumSection({
                         {med.es_venta_libre ? 'Venta Libre (OTC)' : 'Bajo Receta'}
                       </span>
 
-                      {/* Savings badge */}
+                      {/* Savings or form badge */}
                       {isGeneric ? (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white flex items-center gap-0.5 shadow-xs">
                           <TrendingDown className="w-3 h-3" />
@@ -248,7 +244,7 @@ export default function VademecumSection({
                       )}
                     </div>
 
-                    {/* Commercial Product Packaging Image (Farmacorp Style) */}
+                    {/* Commercial Product Packaging Image */}
                     <div className="relative w-full h-36 my-2 bg-gradient-to-b from-gray-50/80 to-white rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100/80 group-hover:border-blue-100 transition-all">
                       <img
                         src={med.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
@@ -256,7 +252,6 @@ export default function VademecumSection({
                         className="h-full w-full object-contain object-center group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
                         loading="lazy"
                         onError={(e) => {
-                          // Fallback to commercial pack if network error
                           (e.target as HTMLImageElement).src = '/assets/medications/paracetamol_500mg_generico.jpg';
                         }}
                       />
@@ -302,7 +297,7 @@ export default function VademecumSection({
                     )}
                   </div>
 
-                  {/* Pricing and Action Buttons */}
+                  {/* Pricing and Action Button */}
                   <div className="mt-4 pt-3 border-t border-gray-100">
                     <div className="flex items-baseline justify-between mb-3">
                       <div>
@@ -315,29 +310,21 @@ export default function VademecumSection({
                         </div>
                       </div>
 
-                      {/* Small badge of bioequivalence */}
+                      {/* Bioequivalence badge */}
                       <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
                         <ShieldCheck className="w-3 h-3 text-emerald-600" />
                         <span>AGEMED</span>
                       </span>
                     </div>
 
-                    {/* Actions */}
-                    <div className="space-y-1.5">
+                    {/* Action: Ver alternativas económicas */}
+                    <div>
                       <button
                         onClick={() => onOpenSavingsComparator(med)}
-                        className="w-full py-2 px-3 rounded-xl text-xs font-bold text-[#0B2B64] bg-cyan-50 hover:bg-[#00A3E0] hover:text-white border border-cyan-200 hover:border-transparent flex items-center justify-center gap-1.5 transition-all"
+                        className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#0B2B64] bg-cyan-50 hover:bg-[#00A3E0] hover:text-white border border-cyan-200 hover:border-transparent flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98]"
                       >
                         <TrendingDown className="w-3.5 h-3.5" />
                         <span>Ver alternativas económicas</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleWhatsAppConsult(med)}
-                        className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-white bg-[#10B981] hover:bg-emerald-600 flex items-center justify-center gap-1.5 shadow-sm transition-all"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Consultar por WhatsApp</span>
                       </button>
                     </div>
                   </div>
@@ -351,8 +338,8 @@ export default function VademecumSection({
         {visibleCount < filteredMedicamentos.length && (
           <div className="text-center mt-10">
             <button
-              onClick={() => setVisibleCount(prev => prev + 24)}
-              className="px-8 py-3 rounded-full bg-white hover:bg-gray-50 border border-gray-300 text-sm font-bold text-[#0B2B64] shadow-sm hover:shadow transition-all inline-flex items-center gap-2"
+              onClick={() => setVisibleCount(prev => prev + 36)}
+              className="px-8 py-3.5 rounded-full bg-white hover:bg-gray-50 border border-gray-300 text-sm font-bold text-[#0B2B64] shadow-sm hover:shadow transition-all inline-flex items-center gap-2 active:scale-95"
             >
               <span>Cargar más medicamentos ({filteredMedicamentos.length - visibleCount} restantes)</span>
               <ChevronRight className="w-4 h-4" />

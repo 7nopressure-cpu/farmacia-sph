@@ -7,7 +7,6 @@ import VademecumSection from '../components/VademecumSection';
 import HospitalsGuideSection from '../components/HospitalsGuideSection';
 import Footer from '../components/Footer';
 import TriageModal from '../components/TriageModal';
-import PrescriptionModal from '../components/PrescriptionModal';
 import SavingsComparatorModal from '../components/SavingsComparatorModal';
 import { Medicamento, CentroSalud } from '../lib/types';
 import { getMedicamentosList, getCentrosSaludList } from '../lib/supabaseClient';
@@ -15,9 +14,7 @@ import {
   ShieldCheck, 
   Sparkles, 
   TrendingDown, 
-  Building2, 
-  HeartHandshake, 
-  HelpCircle 
+  Building2 
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -32,7 +29,6 @@ export default function HomePage() {
   // Modal States
   const [isTriageOpen, setIsTriageOpen] = useState(false);
   const [initialTriageSymptom, setInitialTriageSymptom] = useState('');
-  const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
   const [selectedMedForSavings, setSelectedMedForSavings] = useState<Medicamento | null>(null);
   const [isSavingsComparatorOpen, setIsSavingsComparatorOpen] = useState(false);
 
@@ -86,14 +82,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Navbar with Farmacorp Aesthetic */}
+      {/* Navbar with prominent TUFARMACIA top bar */}
       <Navbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         onOpenTriage={() => handleOpenTriage()}
-        onOpenPrescription={() => setIsPrescriptionOpen(true)}
         onScrollToHospitals={handleScrollToHospitals}
       />
 
@@ -117,7 +112,7 @@ export default function HomePage() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-gray-900">+5,400 Fármacos</h4>
+                  <h4 className="text-sm font-bold text-gray-900">+5.400 Fármacos</h4>
                   <p className="text-xs text-gray-500">Registro Oficial AGEMED</p>
                 </div>
               </div>
@@ -179,13 +174,6 @@ export default function HomePage() {
         initialSymptom={initialTriageSymptom}
         onSearchInVademecum={handleSearchInVademecum}
         onViewHospitals={handleScrollToHospitals}
-      />
-
-      {/* Prescription Reader Modal */}
-      <PrescriptionModal
-        isOpen={isPrescriptionOpen}
-        onClose={() => setIsPrescriptionOpen(false)}
-        onOpenSavingsComparator={handleOpenSavingsComparator}
       />
 
       {/* Savings Comparator Modal */}

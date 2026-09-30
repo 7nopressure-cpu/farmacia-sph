@@ -341,7 +341,15 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// Write full sample dataset (top 1500 for lightning-fast client loading)
+// Write full dataset (all items)
+fs.writeFileSync(
+  path.join(dataDir, 'medicamentos_full.json'),
+  JSON.stringify(processedMedicamentos, null, 2),
+  'utf8'
+);
+console.log(`Creado public/data/medicamentos_full.json con ${processedMedicamentos.length} medicamentos (Catálogo Completo).`);
+
+// Write sample dataset (top 1500 for lightweight loading)
 const clientSample = processedMedicamentos.slice(0, 1500);
 fs.writeFileSync(
   path.join(dataDir, 'medicamentos_sample.json'),
