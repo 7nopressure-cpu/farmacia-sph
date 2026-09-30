@@ -147,17 +147,49 @@ Responde SIEMPRE en este formato JSON válido:
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const geminiKey = (process.env.GEMINI_API_KEY || '').trim();
   const isGoogleKey = geminiKey.startsWith('AIzaSy');
+
+  let testResult: any = {
+    tested: false,
+    google_status: 'not_tested',
+    google_response: null,
+    error: null
+  };
+
+  if (geminiKey) {
+    try {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const res = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Hola, di OK si funcionas' }] }]
+        })
+      });
+      testResult.tested = true;
+      testResult.google_status = `HTTP ${res.status}`;
+      if (res.ok) {
+        const data = await res.json();
+        testResult.google_response = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'OK';
+      } else {
+        testResult.error = await res.text();
+      }
+    } catch (e: any) {
+      testResult.tested = true;
+      testResult.error = e.message;
+    }
+  }
+
   return NextResponse.json({
     status: 'active',
     model: 'gemini-1.5-flash',
     gemini_key_configured: Boolean(geminiKey),
+    gemini_key_length: geminiKey.length,
+    gemini_key_prefix: geminiKey.substring(0, 6) + '...',
     gemini_key_format_valid: isGoogleKey,
-    key_issue: !isGoogleKey && geminiKey.startsWith('eyJ') 
-      ? 'GEMINI_API_KEY contains Supabase Anon JWT instead of Google AI Studio key (AIzaSy...)' 
-      : null,
+    gemini_test: testResult,
     protocol: 'Ley 1737 del Medicamento Bolivia & AGEMED'
   });
 }
