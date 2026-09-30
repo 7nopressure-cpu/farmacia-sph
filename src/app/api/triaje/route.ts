@@ -162,6 +162,13 @@ export async function GET() {
   });
 }
 
+function hasWord(text: string, words: string[]): boolean {
+  return words.some(w => {
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i').test(text);
+  });
+}
+
 function evaluateComprehensiveClinicalCase(params: {
   query: string;
   edad: string;
@@ -171,8 +178,53 @@ function evaluateComprehensiveClinicalCase(params: {
 }): TriajeResponse {
   const { query, edad, duracion, antecedentes, conversationHistory } = params;
   const q = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const isChild = edad.includes('Pediátrico') || edad.includes('Niño') || edad.includes('< 5') || q.includes('bebe') || q.includes('hijo') || q.includes('hija') || q.includes('nino');
-  const isPregnant = edad.includes('Embarazo') || edad.includes('gestación') || q.includes('embarazada') || q.includes('embarazo');
+  const isChild = edad.includes('Pediátrico') || edad.includes('Niño') || edad.includes('< 5') || hasWord(q, ['bebe', 'hijo', 'hija', 'nino', 'lactante', 'infante']);
+  const isPregnant = edad.includes('Embarazo') || edad.includes('gestación') || hasWord(q, ['embarazada', 'embarazo', 'gestante']);
+
+  // =========================================================================
+  // 0. PREGUNTAS DE SEGUIMIENTO (MULTI-TURNO EN CONVERSACIÓN CONTINUA)
+  // =========================================================================
+  const isFollowUp = conversationHistory.length > 0 && (
+    hasWord(q, ['dosis', 'posologia', 'alimentos', 'comida', 'comer', 'horario', 'contraindicacion', 'contraindicaciones', 'efectos', 'secundarios', 'alcohol', 'mezclar', 'hospital', 'donde', 'duran', 'tiempo']) ||
+    q.includes('como tomo') || 
+    q.includes('puedo tomar') ||
+    q.includes('con que') ||
+    q.includes('que pasa si')
+  );
+
+  if (isFollowUp) {
+    return {
+      nivel: 'VERDE',
+      titulo: 'Orientación Farmacoterapéutica de Seguimiento (TuFarmacia)',
+      resumen_clinico: `En respuesta a tu duda de seguimiento ("${query}"):
+• Posología segura: Si se trata de Paracetamol en adultos, la dosis estándar preventiva es de 500 mg a 1g cada 8 horas según necesidad por dolor o fiebre, sin superar jamás los 3 gramos en 24 horas (máximo 3 a 5 días).
+• Ingesta con alimentos: Si vas a tomar analgésicos antiinflamatorios (como Ibuprofeno), tómalo SIEMPRE con las comidas o tras un vaso de leche/alimento para proteger la pared gástrica. Si tienes antecedentes de gastritis o úlcera, prefiere siempre Paracetamol.
+• Contraindicaciones clave: Evita totalmente consumir bebidas alcohólicas mientras tomes medicación analgésica. No combines antigripales de diferentes marcas que ya incluyan paracetamol en su fórmula para evitar sobredosis involuntaria.`,
+      medidas_no_farmacologicas: [
+        'Toma los comprimidos con un vaso completo de agua hervida tibia.',
+        'Respeta el intervalo de tomas (mínimo 6 a 8 horas entre dosis).',
+        'Conserva los medicamentos en su blíster original en un lugar fresco y seco.'
+      ],
+      medicamentos_otc_sugeridos: [
+        {
+          dci: 'Paracetamol',
+          posologia_preventiva: '500 mg cada 8 horas con abundante agua',
+          advertencia: 'Dosis máxima en adultos: 3g/día. No asociar con alcohol.',
+          nombre_referencial_bo: 'Paracetamol comprimidos (IFA / INTI / COFAR / Bagó)'
+        }
+      ],
+      especialidad_recomendada: 'Medicina General / Farmacia Comunitaria',
+      hospitales_derivacion_sugeridos: [
+        'Hospital Municipal Los Pinos (Zona Sur, La Paz)',
+        'Hospital Municipal La Portada (Max Paredes)'
+      ],
+      signos_alarma: [
+        'Dolor de estómago agudo o sensación de quemazón intensa tras ingerir la medicación',
+        'Fiebre refractaria que no desciende tras 48 horas de tratamiento'
+      ],
+      advertencia_legal: 'Información de farmacovigilancia y orientación bajo Ley 1737 del Medicamento de Bolivia.'
+    };
+  }
 
   // =========================================================================
   // 1. PROTOCOLOS DE EMERGENCIA CRÍTICA / CÓDIGO ROJO (Riesgo Vital Inmediato)
@@ -654,42 +706,6 @@ function evaluateComprehensiveClinicalCase(params: {
     };
   }
 
-  // =========================================================================
-  // 13. RESPUESTAS CONTEXTUALES A PREGUNTAS DE SEGUIMIENTO (MULTI-TURNO)
-  // =========================================================================
-  if (conversationHistory.length > 0 && (q.includes('dosis') || q.includes('como tomo') || q.includes('cuanto') || q.includes('hospital') || q.includes('gastritis') || q.includes('alimento') || q.includes('comida') || q.includes('efecto') || q.includes('contraindicac'))) {
-    return {
-      nivel: 'VERDE',
-      titulo: 'Orientación Farmacoterapéutica de Seguimiento (TuFarmacia)',
-      resumen_clinico: `En respuesta a tu pregunta de seguimiento ("${query}"): 
-• Posología segura: Si se trata de Paracetamol en adultos, la dosis recomendada es de 500 mg a 1g cada 8 horas según dolor o fiebre, sin superar jamás los 3g al día (máximo 3 a 5 días).
-• Con o sin alimentos: Si tomas analgésicos antiinflamatorios (como Ibuprofeno), tómalo SIEMPRE con el estómago lleno o tras una comida para proteger tu mucosa gástrica. Si tienes antecedentes de gastritis o úlcera, prefiere el Paracetamol.
-• Interacciones: Evite el consumo simultáneo de alcohol o combinar múltiples productos antigripales comerciales que dupliquen el principio activo.`,
-      medidas_no_farmacologicas: [
-        'Tome los medicamentos orales con un vaso lleno de agua hervida o purificada.',
-        'Mantenga un horario regular de tomas para sostener el efecto analgésico.',
-        'Guarde los fármacos en lugar fresco y seco, lejos del alcance de niños.'
-      ],
-      medicamentos_otc_sugeridos: [
-        {
-          dci: 'Paracetamol',
-          posologia_preventiva: '500 mg cada 8 horas con un vaso de agua',
-          advertencia: 'No exceder 3 gramos al día.',
-          nombre_referencial_bo: 'Paracetamol comprimidos (Laboratorios bolivianos IFA / INTI / COFAR)'
-        }
-      ],
-      especialidad_recomendada: 'Medicina General / Farmacia Comunitaria',
-      hospitales_derivacion_sugeridos: [
-        'Hospital Municipal Los Pinos (Zona Sur, La Paz)',
-        'Hospital Municipal La Portada (Max Paredes)'
-      ],
-      signos_alarma: [
-        'Aparición de dolor estomacal intenso o ardor persistente tras ingerir medicación',
-        'Fiebre refractaria que no cede tras 48 horas de tratamiento sintomático'
-      ],
-      advertencia_legal: 'Información y farmacovigilancia orientativa bajo Ley 1737 del Medicamento de Bolivia.'
-    };
-  }
 
   // =========================================================================
   // 14. EVALUACIÓN GENERAL CLÍNICA CON ORIENTACIÓN POR SÍNTOMA ESPECÍFICO
