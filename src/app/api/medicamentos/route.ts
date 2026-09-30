@@ -3,6 +3,28 @@ import { supabase, getMedicamentosList } from '../../../lib/supabaseClient';
 
 export const dynamic = 'force-dynamic';
 
+function attachMedicationImage(med: any) {
+  if (med.imagen_url) return med;
+  const combined = `${med.nombre_comercial} ${med.dci_principio_activo} ${med.grupo_terapeutico || ''}`.toLowerCase();
+  let img = '/assets/medications/paracetamol_500mg_generico.jpg';
+  if (combined.includes('kitadol')) img = '/assets/medications/kitadol_500mg.jpg';
+  else if (combined.includes('paracetamol')) img = '/assets/medications/tempdol_paracetamol_500.jpg';
+  else if (combined.includes('ibuprofeno')) img = '/assets/medications/fabogesic_600mg.jpg';
+  else if (combined.includes('aspirina')) img = '/assets/medications/aspirina_500mg.jpg';
+  else if (combined.includes('amoxicilina')) img = '/assets/medications/samoxicilina_500.jpg';
+  else if (combined.includes('azitromicina') || combined.includes('3 micina')) img = '/assets/medications/3_micina_500mg.jpg';
+  else if (combined.includes('omeprazol')) img = '/assets/medications/refluprazol_omeprazol.jpg';
+  else if (combined.includes('losartan')) img = '/assets/medications/losartan_50mg.jpg';
+  else if (combined.includes('metformina')) img = '/assets/medications/metformina_850mg.jpg';
+  else if (combined.includes('diclofenaco')) img = '/assets/medications/diclofenaco_100mg.jpg';
+  else if (combined.includes('refrianex') || combined.includes('tapsin') || combined.includes('antigripal')) img = '/assets/medications/antigripal_compuesto.jpg';
+  else if (combined.includes('salbutamol')) img = '/assets/medications/salbutamol_aerosol.jpg';
+  else if (combined.includes('loratadina')) img = '/assets/medications/loratadina_10mg.jpg';
+  else if (combined.includes('crema') || combined.includes('gel')) img = '/assets/medications/chavez_TRIDERMACREMA15GR_7771011250304_166.jpg';
+  else if (combined.includes('jarabe')) img = '/assets/medications/refrianex_jarabe.jpg';
+  return { ...med, imagen_url: img };
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -14,7 +36,7 @@ export async function GET(req: Request) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
     const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10));
 
-    // 1. Try querying Supabase directly with ilike if available
+    // 1. Try querying Supabase directly if populated with full catalog (>= 4000 items)
     if (supabase) {
       try {
         let query = supabase.from('medicamentos').select('*', { count: 'exact' });
@@ -41,17 +63,18 @@ export async function GET(req: Request) {
 
         const { data, count, error } = await query;
 
-        if (!error && data && data.length > 0) {
+        // If Supabase has the full catalog populated (>= 4000 rows)
+        if (!error && data && data.length > 0 && (count ?? 0) >= 4000) {
           return NextResponse.json({
             source: 'supabase',
             total: count ?? data.length,
             limit,
             offset,
-            medicamentos: data
+            medicamentos: data.map(attachMedicationImage)
           });
         }
       } catch (sbErr) {
-        console.warn('Supabase query error, switching to fast in-memory full catalog:', sbErr);
+        console.warn('Supabase query error, switching to fast full catalog:', sbErr);
       }
     }
 
@@ -107,7 +130,7 @@ export async function GET(req: Request) {
       total,
       limit,
       offset,
-      medicamentos: paginated
+      medicamentos: paginated.map(attachMedicationImage)
     });
   } catch (error: any) {
     console.error('Error en /api/medicamentos:', error);
