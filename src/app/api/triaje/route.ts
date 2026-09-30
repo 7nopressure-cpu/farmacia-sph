@@ -94,11 +94,15 @@ Responde SIEMPRE en este formato JSON válido:
 }`;
 
         const candidateModels = [
+          'gemini-flash-latest',
+          'gemini-2.5-flash-lite',
+          'gemini-flash-lite-latest',
+          'gemini-2.5-flash',
+          'gemini-pro-latest',
+          'gemini-2.5-pro',
           'gemini-1.5-flash-latest',
           'gemini-1.5-flash',
           'gemini-2.0-flash',
-          'gemini-1.5-flash-001',
-          'gemini-1.5-flash-002',
           'gemini-pro'
         ];
 
@@ -108,7 +112,9 @@ Responde SIEMPRE en este formato JSON válido:
         for (const modelName of candidateModels) {
           try {
             const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${rawApiKey}`;
-            const aiRes = await fetch(geminiUrl, {
+            
+            // Try first with JSON mime type
+            let aiRes = await fetch(geminiUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -121,10 +127,27 @@ Responde SIEMPRE en este formato JSON válido:
               })
             });
 
+            // If 400 (some models don't support response_mime_type), retry without generationConfig
+            if (!aiRes.ok && aiRes.status === 400) {
+              aiRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  system_instruction: { parts: [{ text: systemInstruction + '\nDevuelve estrictamente el objeto JSON sin texto antes ni después.' }] },
+                  contents: contentsPayload,
+                  generationConfig: {
+                    temperature: 0.2
+                  }
+                })
+              });
+            }
+
             if (aiRes.ok) {
               const aiData = await aiRes.json();
-              const rawText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              let rawText = aiData.candidates?.[0]?.content?.parts?.[0]?.text;
               if (rawText) {
+                // Strip markdown code fences if present
+                rawText = rawText.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '').trim();
                 parsedResponse = JSON.parse(rawText) as TriajeResponse;
                 successfulModel = modelName;
                 break;
@@ -192,13 +215,29 @@ export async function GET(req: Request) {
       }
 
       // 2. Try candidate models
-      const candidatesToTry = availableModels.length > 0 
-        ? availableModels.filter(m => m.includes('gemini') && m.includes('flash')).slice(0, 3)
-        : ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-2.0-flash', 'gemini-pro'];
+      const validTextModels = availableModels.filter(m => 
+        !m.includes('tts') && 
+        !m.includes('image') && 
+        !m.includes('customtools')
+      );
+
+      const candidatePriority = [
+        'gemini-flash-latest',
+        'gemini-2.5-flash-lite',
+        'gemini-flash-lite-latest',
+        'gemini-2.5-flash',
+        'gemini-pro-latest',
+        'gemini-2.5-pro',
+        ...validTextModels
+      ];
+      const candidatesToTry = Array.from(new Set(candidatePriority))
+        .filter(m => availableModels.length === 0 || availableModels.includes(m))
+        .slice(0, 6);
 
       let workingModel: string | null = null;
       let modelResponse: string | null = null;
       let lastErr: any = null;
+      const testedModels: any[] = [];
 
       for (const mod of candidatesToTry) {
         try {
@@ -207,24 +246,36 @@ export async function GET(req: Request) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [{ parts: [{ text: 'Hola' }] }]
+              contents: [{ parts: [{ text: 'Hola, responde con la palabra OK.' }] }]
             })
           });
+          const textRes = await mRes.text();
           if (mRes.ok) {
-            const mData = await mRes.json();
-            workingModel = mod;
-            modelResponse = mData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            break;
+            const mData = JSON.parse(textRes);
+            const ans = mData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            testedModels.push({ model: mod, status: mRes.status, ok: true, answer: ans });
+            if (!workingModel) {
+              workingModel = mod;
+              modelResponse = ans;
+            }
           } else {
-            lastErr = await mRes.text();
+            let errorMsg = textRes;
+            try {
+              const errJson = JSON.parse(textRes);
+              errorMsg = errJson.error?.message || textRes;
+            } catch (_) {}
+            testedModels.push({ model: mod, status: mRes.status, ok: false, error: errorMsg });
+            lastErr = errorMsg;
           }
         } catch (e: any) {
+          testedModels.push({ model: mod, ok: false, error: e.message });
           lastErr = e.message;
         }
       }
 
       testResult.tested = true;
       testResult.available_models = availableModels.slice(0, 15);
+      testResult.tested_models = testedModels;
       testResult.working_model = workingModel;
       testResult.google_status = workingModel ? 'HTTP 200 OK (WORKING)' : `Failed (${listRes.status})`;
       testResult.google_response = modelResponse;
@@ -233,11 +284,11 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     status: 'active',
-    model: 'gemini-1.5-flash',
+    model: testResult.working_model || 'gemini-flash-latest',
     gemini_key_configured: Boolean(geminiKey),
     gemini_key_length: geminiKey.length,
     gemini_key_prefix: geminiKey.substring(0, 6) + '...',
-    gemini_key_format_valid: isGoogleKey,
+    gemini_key_format_valid: geminiKey.length >= 35,
     gemini_test: testResult,
     protocol: 'Ley 1737 del Medicamento Bolivia & AGEMED'
   });
