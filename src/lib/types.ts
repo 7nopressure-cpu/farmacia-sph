@@ -1,10 +1,19 @@
 export interface Medicamento {
   id: number;
-  nombre_comercial: string;
-  dci_principio_activo: string;
+  nombre_comercial: string; // Col B
+  dci_principio_activo: string; // Col C
+  accion_terapeutica?: string; // Col D
+  categoria_clasificacion?: string; // Col E
+  subgrupo_justificacion?: string; // Col F
+  forma_farmaceutica: string; // Col G
+  laboratorio: string; // Col H
+  distribuido_por?: string; // Col I
+  formula?: string; // Col J
+  presentaciones?: string; // Col K
+  direccion_laboratorio?: string; // Col L
+
+  // Compatibilidad
   concentracion: string;
-  forma_farmaceutica: string;
-  laboratorio: string;
   registro_sanitario: string;
   precio_referencial_bs: number;
   condicion_venta: string;

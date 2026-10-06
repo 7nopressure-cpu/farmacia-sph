@@ -2,11 +2,13 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   Search, 
   Sparkles, 
   X
 } from 'lucide-react';
+import { slugify, DRUG_CATEGORIES } from '../lib/medicationsHelper';
 
 interface NavbarProps {
   searchQuery: string;
@@ -18,13 +20,9 @@ interface NavbarProps {
 }
 
 export const CATEGORIES = [
-  { id: 'todos', label: 'Todos los Fármacos' },
+  { id: 'todos', label: 'Todos' },
   { id: 'otc', label: 'Venta Libre (OTC)' },
-  { id: 'antiinfecciosos', label: 'Antiinfecciosos' },
-  { id: 'cardiovasculares', label: 'Cardiovasculares' },
-  { id: 'respiratorios', label: 'Respiratorios' },
-  { id: 'analgesicos', label: 'Analgésicos y Gripes' },
-  { id: 'digestivos', label: 'Gastrointestinales' },
+  ...DRUG_CATEGORIES.map(cat => ({ id: cat, label: cat })),
   { id: 'hospitales', label: '🏥 Especialidades y Hospitales' },
 ];
 
@@ -49,6 +47,14 @@ export default function Navbar({
     }
   };
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      e.preventDefault();
+      const targetSlug = slugify(searchQuery.trim());
+      window.open(`/medicamento/${encodeURIComponent(targetSlug)}`, '_blank');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm transition-all border-b border-gray-100">
       {/* 1. Barra Superior Destacada: TUFARMACIA */}
@@ -63,19 +69,19 @@ export default function Navbar({
       {/* 2. Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-3 sm:gap-6">
-          {/* Logo Corporativo SnowPoint Healthcare */}
+          {/* Logo Oficial TUFARMACIA (reemplaza a SnowPoint Healthcare en el encabezado) */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="#" className="flex items-center gap-2 group">
-              <div className="relative h-11 w-44 sm:h-14 sm:w-56 overflow-hidden rounded-md bg-white flex items-center">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="relative h-11 w-44 sm:h-13 sm:w-56 overflow-hidden rounded-md bg-white flex items-center">
                 <Image 
-                  src="/assets/logo.jpg" 
-                  alt="SnowPoint Healthcare Bolivia" 
+                  src="/assets/06_Logo_TUFARMACIA_Transparente_Letra11_HD.png" 
+                  alt="TUFARMACIA Bolivia" 
                   fill
                   className="object-contain object-left transition-transform group-hover:scale-105"
                   priority
                 />
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* Central Prominent Search Bar */}
@@ -88,7 +94,8 @@ export default function Navbar({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Buscar por síntoma, principio activo (DCI), marca o laboratorio..."
+                onKeyDown={handleSearchKeyDown}
+                placeholder="busca tu medicamento por nombre comercial o generico"
                 className="w-full pl-11 pr-10 py-2.5 bg-[#F4F6F8] hover:bg-white focus:bg-white text-gray-800 placeholder-gray-400 text-xs sm:text-sm font-medium rounded-full border border-gray-200 focus:border-[#00A3E0] focus:ring-2 focus:ring-[#00A3E0]/20 focus:outline-none transition-all shadow-inner"
               />
               {searchQuery && (
@@ -119,7 +126,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* 3. Category Bar (Chips) */}
+      {/* 3. Category Bar (Chips) con las 11 Categorías de la Base de Datos */}
       <div className="bg-[#F8FAFC] border-t border-gray-100 py-2 px-4 sm:px-8 overflow-x-auto scrollbar-none">
         <div className="max-w-7xl mx-auto flex items-center gap-2 whitespace-nowrap">
           {CATEGORIES.map((cat) => {

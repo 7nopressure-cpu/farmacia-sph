@@ -10,9 +10,11 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 import { Medicamento } from '../lib/types';
+import { slugify } from '../lib/medicationsHelper';
 
 interface VademecumSectionProps {
   medicamentos: Medicamento[];
@@ -80,13 +82,17 @@ export default function VademecumSection({
       list = list.filter(m => !m.es_venta_libre);
     }
 
-    // Category filter from top Navbar
+    // Category filter from top Navbar or dropdown
     if (selectedCategory && selectedCategory !== 'todos' && selectedCategory !== 'hospitales') {
       if (selectedCategory === 'otc') {
         list = list.filter(m => m.es_venta_libre);
       } else {
         const catClean = normalize(selectedCategory);
-        list = list.filter(m => normalize(m.grupo_terapeutico).includes(catClean));
+        list = list.filter(m => 
+          normalize(m.categoria_clasificacion || '').includes(catClean) ||
+          normalize(m.grupo_terapeutico || '').includes(catClean) ||
+          normalize(m.accion_terapeutica || '').includes(catClean)
+        );
       }
     }
 
@@ -213,6 +219,9 @@ export default function VademecumSection({
                                 (med.laboratorio || '').toLowerCase().includes('delta') ||
                                 (med.laboratorio || '').toLowerCase().includes('genérico');
 
+              const targetSlug = slugify(med.dci_principio_activo !== '-' ? med.dci_principio_activo : med.nombre_comercial);
+              const medPageUrl = `/medicamento/${encodeURIComponent(targetSlug)}`;
+
               return (
                 <div
                   key={med.id}
@@ -244,8 +253,13 @@ export default function VademecumSection({
                       )}
                     </div>
 
-                    {/* Commercial Product Packaging Image */}
-                    <div className="relative w-full h-36 my-2 bg-gradient-to-b from-gray-50/80 to-white rounded-xl overflow-hidden flex items-center justify-center p-2 border border-gray-100/80 group-hover:border-blue-100 transition-all">
+                    {/* Commercial Product Packaging Image with target=_blank link */}
+                    <a
+                      href={medPageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="relative block w-full h-36 my-2 bg-gradient-to-b from-gray-50/80 to-white rounded-xl overflow-hidden p-2 border border-gray-100/80 group-hover:border-blue-100 transition-all cursor-pointer"
+                    >
                       <img
                         src={med.imagen_url || '/assets/medications/paracetamol_500mg_generico.jpg'}
                         alt={`${med.nombre_comercial} - ${med.dci_principio_activo}`}
@@ -255,21 +269,32 @@ export default function VademecumSection({
                           (e.target as HTMLImageElement).src = '/assets/medications/paracetamol_500mg_generico.jpg';
                         }}
                       />
-                      <span className="absolute bottom-1 right-2 text-[9px] font-bold text-gray-400/80 uppercase tracking-tighter">
-                        Foto comercial
+                      <span className="absolute bottom-1 right-2 text-[9px] font-bold text-gray-400/80 uppercase tracking-tighter flex items-center gap-0.5">
+                        <span>Ficha B-L</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
                       </span>
-                    </div>
+                    </a>
 
                     {/* Drug Commercial Name */}
-                    <h3 className="font-extrabold text-base text-gray-900 group-hover:text-[#0B2B64] transition-colors leading-tight line-clamp-1">
+                    <a
+                      href={medPageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-extrabold text-base text-gray-900 group-hover:text-[#0B2B64] transition-colors leading-tight line-clamp-1 block hover:underline"
+                    >
                       {med.nombre_comercial}
-                    </h3>
+                    </a>
 
                     {/* Active Principle (DCI) + Concentration */}
                     <div className="mt-1">
-                      <span className="text-xs font-semibold text-[#00A3E0] block line-clamp-1">
+                      <a
+                        href={medPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-[#00A3E0] hover:text-[#0B2B64] block line-clamp-1"
+                      >
                         {med.dci_principio_activo}
-                      </span>
+                      </a>
                       <span className="text-[11px] text-gray-500 font-medium">
                         Dosis: {med.concentracion} • {med.forma_farmaceutica}
                       </span>
@@ -288,18 +313,18 @@ export default function VademecumSection({
                     </div>
 
                     {/* Therapeutic group badge */}
-                    {med.grupo_terapeutico && (
+                    {(med.categoria_clasificacion || med.grupo_terapeutico) && (
                       <div className="mt-2">
                         <span className="text-[10px] text-gray-600 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 line-clamp-1 inline-block">
-                          {med.grupo_terapeutico}
+                          {med.categoria_clasificacion || med.grupo_terapeutico}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Pricing and Action Button */}
+                  {/* Pricing and Action Buttons */}
                   <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="flex items-baseline justify-between mb-3">
+                    <div className="flex items-baseline justify-between mb-2.5">
                       <div>
                         <span className="text-[10px] text-gray-400 block font-medium">Precio Ref. Bolivia</span>
                         <div className="flex items-baseline gap-1">
@@ -317,14 +342,24 @@ export default function VademecumSection({
                       </span>
                     </div>
 
-                    {/* Action: Ver alternativas económicas */}
-                    <div>
+                    {/* Actions */}
+                    <div className="space-y-1.5">
+                      <a
+                        href={medPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2 px-3 rounded-xl text-xs font-bold text-white bg-[#0B2B64] hover:bg-[#003876] flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98]"
+                      >
+                        <span>Ficha B-L y Variantes</span>
+                        <ExternalLink className="w-3.5 h-3.5 text-cyan-300" />
+                      </a>
+
                       <button
                         onClick={() => onOpenSavingsComparator(med)}
-                        className="w-full py-2.5 px-3 rounded-xl text-xs font-bold text-[#0B2B64] bg-cyan-50 hover:bg-[#00A3E0] hover:text-white border border-cyan-200 hover:border-transparent flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.98]"
+                        className="w-full py-1.5 px-3 rounded-xl text-[11px] font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center gap-1 transition-all"
                       >
-                        <TrendingDown className="w-3.5 h-3.5" />
-                        <span>Ver alternativas económicas</span>
+                        <TrendingDown className="w-3 h-3 text-emerald-600" />
+                        <span>Alternativas de ahorro</span>
                       </button>
                     </div>
                   </div>

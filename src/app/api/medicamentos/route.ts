@@ -117,8 +117,10 @@ export async function GET(req: Request) {
     if (categoria && categoria.toLowerCase() !== 'todos') {
       const cleanCat = normalize(categoria);
       filtered = filtered.filter(m => {
-        const accion = normalize(m.grupo_terapeutico);
-        return accion.includes(cleanCat);
+        const cat = normalize(m.categoria_clasificacion || '');
+        const accion = normalize(m.grupo_terapeutico || '');
+        const act = normalize(m.accion_terapeutica || '');
+        return cat.includes(cleanCat) || accion.includes(cleanCat) || act.includes(cleanCat);
       });
     }
 
