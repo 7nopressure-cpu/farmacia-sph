@@ -19,12 +19,12 @@ export default function Footer() {
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-white/10">
           
-          {/* Col 1: Brand & Logo */}
+          {/* Col 1: Brand & Consultora Logo (MKT (3).jpg) */}
           <div className="space-y-4">
-            <div className="relative h-12 w-48 bg-white rounded-md p-1.5 flex items-center">
+            <div className="relative h-16 w-52 bg-white rounded-xl p-2 flex items-center shadow-md">
               <Image
-                src="/assets/logo.jpg"
-                alt="SnowPoint Healthcare Bolivia"
+                src="/assets/mkt_consultora.jpg"
+                alt="Consultora SnowPoint Healthcare - MKT"
                 fill
                 className="object-contain object-left px-2"
               />

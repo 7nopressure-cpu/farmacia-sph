@@ -54,11 +54,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* 1. Barra Superior con Logotipo Oficial 01_Logo_TUFARMACIA_Fondo_Azul_Letra11_HD */}
-      <Navbar
-        onOpenTriage={() => handleOpenTriage()}
-        onScrollToHospitals={handleScrollToHospitals}
-      />
+      {/* 1. Barra Superior con Logotipo Oficial ceñido al logo */}
+      <Navbar />
 
       <main className="flex-1">
         {/* 2. Sección Hero Unificada y Llamativa (Fila 2 y 3 unificadas) */}
